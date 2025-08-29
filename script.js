@@ -3,8 +3,6 @@ const SUPABASE_URL = 'https://bvdqbzdiwcrlqmqdcvmv.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2ZHFiemRpd2NybHFtcWRjdm12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2ODc3MTcsImV4cCI6MjA3MTI2MzcxN30.aN-6AoFZWr07lmPcIdh-vc-DgFNNL3luXQJw4C18T_g';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Google Places API configuration
-const GOOGLE_API_KEY = 'AIzaSyDF7OvTsuLGaYk-YGp5eci6CiI6iRqasSk';
 const PLACES_API_BASE = 'https://places.googleapis.com/v1/places:searchText';
 const PLACES_PHOTO_BASE = 'https://places.googleapis.com/v1';
 
@@ -1451,21 +1449,12 @@ async function searchGooglePlaces(query) {
     console.log('Starting Google Places search for:', query);
     
     try {
-        const requestBody = {
-            textQuery: query,
-            maxResultCount: 10,
-            regionCode: "IT",
-            languageCode: 'it'
-        };
-        
-        const response = await fetch(PLACES_API_BASE, {
+        const response = await fetch('https://bvdqbzdiwcrlqmqdcvmv.supabase.co/functions/v1/search-places', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Goog-Api-Key': GOOGLE_API_KEY,
-                'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.location,places.id,places.photos'
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({ query })
         });
         
         if (!response.ok) {
@@ -1476,18 +1465,6 @@ async function searchGooglePlaces(query) {
         
         const data = await response.json();
         console.log('Places found:', data.places?.length || 0);
-        
-        // Process places to get photo URLs
-        if (data.places) {
-            for (let place of data.places) {
-                if (place.photos && place.photos.length > 0) {
-                    // Get the first photo reference
-                    const photoName = place.photos[0].name;
-                    // Build the photo URL
-                    place.photoUrl = `${PLACES_PHOTO_BASE}/${photoName}/media?maxHeightPx=400&maxWidthPx=400&key=${GOOGLE_API_KEY}`;
-                }
-            }
-        }
         
         return data.places || [];
     } catch (error) {
