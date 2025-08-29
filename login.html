@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Admin - Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #1F1F2E 0%, #16213E 100%);
+            color: #E8E8E8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: gradientShift 10s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(42, 42, 62, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #7B4FE0, #E91B7D);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #A0A0B0;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #E5E7EB;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(42, 42, 62, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: #E8E8E8;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #7B4FE0;
+            box-shadow: 0 0 0 3px rgba(123, 79, 224, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #6B7280;
+        }
+
+        .btn-login {
+            width: 100%;
+            background: linear-gradient(45deg, #7B4FE0, #E91B7D);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            color: #E8E8E8;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(123, 79, 224, 0.3);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #FCA5A5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86EFAC;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .divider span {
+            background: rgba(42, 42, 62, 0.4);
+            padding: 0 15px;
+            position: relative;
+            color: #6B7280;
+            font-size: 14px;
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 25px;
+            color: #A0A0B0;
+            font-size: 14px;
+        }
+
+        .signup-link a {
+            color: #7B4FE0;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .signup-link a:hover {
+            color: #E91B7D;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #E8E8E8;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Match Admin</h1>
+                <p>Event Management Portal</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="admin@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                </div>
+
+                <button type="submit" class="btn-login" id="login-btn">
+                    <span id="btn-text">Sign In</span>
+                </button>
+
+                <div id="error-message" class="error-message"></div>
+                <div id="success-message" class="success-message"></div>
+            </form>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <div class="signup-link">
+                Don't have an account? <a href="#" id="signup-link">Contact Administrator</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://bvdqbzdiwcrlqmqdcvmv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2ZHFiemRpd2NybHFtcWRjdm12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2ODc3MTcsImV4cCI6MjA3MTI2MzcxN30.aN-6AoFZWr07lmPcIdh-vc-DgFNNL3luXQJw4C18T_g';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Check if already logged in
+        window.addEventListener('DOMContentLoaded', async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                // Check if this is a B2C user (app user) - they shouldn't be here
+                const { data: regularUser } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+                
+                if (regularUser) {
+                    // This is a regular app user, sign them out
+                    showError('This account is for the mobile app. Please use the app to sign in.');
+                    await supabase.auth.signOut();
+                    return;
+                }
+                
+                // They're an organizer, redirect to admin panel
+                showSuccess('Already logged in! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
+            }
+        });
+
+        // Handle login form submission
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('login-btn');
+            const btnText = document.getElementById('btn-text');
+            const errorMessage = document.getElementById('error-message');
+            const successMessage = document.getElementById('success-message');
+            
+            // Reset messages
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+            
+            // Show loading state
+            loginBtn.disabled = true;
+            btnText.innerHTML = '<span class="loading-spinner"></span>Signing in...';
+            
+            try {
+                // First, try to sign in
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                // IMPORTANT: Check if this is a B2C user (not allowed in admin panel)
+                const { data: regularUser } = await supabase
+                    .from('users')
+                    .select('id')
+                    .eq('id', data.user.id)
+                    .maybeSingle();
+                
+                if (regularUser) {
+                    // This is a regular app user, not an organizer
+                    await supabase.auth.signOut();
+                    throw new Error('This account is registered for the mobile app. Only event organizers can access the admin panel. Please use the mobile app instead.');
+                }
+                
+                // Check if organizer profile exists
+                const { data: organizer, error: orgError } = await supabase
+                    .from('organizers')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .single();
+                
+                if (orgError && orgError.code === 'PGRST116') {
+                    // No organizer profile exists, create one
+                    const { error: insertError } = await supabase
+                        .from('organizers')
+                        .insert({
+                            id: data.user.id,
+                            subscription_tier: 'basic',
+                            max_venues: 1
+                        });
+                    
+                    if (insertError) {
+                        console.error('Error creating organizer profile:', insertError);
+                    }
+                }
+                
+                // Show success message
+                showSuccess('Login successful! Redirecting...');
+                
+                // Redirect to admin panel after a short delay
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                showError(error.message || 'Invalid email or password');
+            } finally {
+                // Reset button state
+                loginBtn.disabled = false;
+                btnText.textContent = 'Sign In';
+            }
+        });
+
+        // Handle signup link click
+        document.getElementById('signup-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            showError('Please contact the administrator to create an organizer account.');
+        });
+
+        // Helper functions
+        function showError(message) {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            
+            // Hide after 5 seconds
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successMessage = document.getElementById('success-message');
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+        }
+
+        // Handle Enter key in form fields
+        document.getElementById('email').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('password').focus();
+            }
+        });
+    </script>
+</body>
+</html>
