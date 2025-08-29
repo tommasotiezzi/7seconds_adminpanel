@@ -1449,17 +1449,18 @@ async function searchGooglePlaces(query) {
     console.log('Starting Google Places search for:', query);
     
     try {
-        const response = await fetch('https://bvdqbzdiwcrlqmqdcvmv.supabase.co/functions/v1/search-places', {
+        const response = await fetch('https://bvdqbzdiwcrlqmqdcvmv.supabase.co/functions/v1/google-key', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2ZHFiemRpd2NybHFtcWRjdm12Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2ODc3MTcsImV4cCI6MjA3MTI2MzcxN30.aN-6AoFZWr07lmPcIdh-vc-DgFNNL3luXQJw4C18T_g'
             },
             body: JSON.stringify({ query })
         });
         
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Places API error:', errorText);
+            const errorData = await response.json();
+            console.error('Places API error:', errorData);
             return [];
         }
         
@@ -1472,7 +1473,6 @@ async function searchGooglePlaces(query) {
         return [];
     }
 }
-
 // [Rest of the venue input and helper functions remain the same...]
 
 // ========================================
